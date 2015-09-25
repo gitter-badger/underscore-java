@@ -30,6 +30,7 @@ import com.github.underscore.Predicate;
 import com.github.underscore.string.$.JsonStringBuilder;
 
 import java.util.*;
+import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -846,6 +847,45 @@ _.repeat('abc', 0);
     @Test(expected = $.ParseException.class)
     public void testDecodeParseErr15() {
         $.fromJson("[\"abc\\u001G\\/\"]");
+    }
+
+    @Test
+    @Ignore
+    public void toXml() {
+        String string =
+        "{\n  \"glossary\": {\n    \"title\": \"example glossary\",\n    \"GlossDiv\": {\n      \"title\":"
+        + " \"S\",\n      \"GlossList\": {\n        \"GlossEntry\": {\n          \"ID\": \"SGML\",\n"
+        + "          \"SortAs\": \"SGML\",\n          \"GlossTerm\": \"Standard Generalized Markup Language\",\n"
+        + "          \"Acronym\": \"SGML\",\n          \"Abbrev\": \"ISO 8879:1986\",\n          \"GlossDef\": {\n"
+        + "            \"para\": \"A meta-markup language, used to create markup languages such as DocBook.\",\n"
+        + "            \"GlossSeeAlso\": [\n              \"GML\",\n              \"XML\"\n            ]\n"
+        + "          },\n          \"GlossSee\": \"markup\"\n        }\n      }\n    }\n  }\n}";
+        assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+        + "<root>"
+        + "  <glossary>"
+        + "    <GlossDiv>"
+        + "      <GlossList>"
+        + "        <GlossEntry>"
+        + "          <Abbrev>ISO 8879:1986</Abbrev>"
+        + "          <Acronym>SGML</Acronym>"
+        + "          <GlossDef>"
+        + "            <GlossSeeAlso>"
+        + "              <element>GML</element>"
+        + "              <element>XML</element>"
+        + "            </GlossSeeAlso>"
+        + "            <para>A meta-markup language, used to create markup languages such as DocBook.</para>"
+        + "          </GlossDef>"
+        + "          <GlossSee>markup</GlossSee>"
+        + "          <GlossTerm>Standard Generalized Markup Language</GlossTerm>"
+        + "          <ID>SGML</ID>"
+        + "          <SortAs>SGML</SortAs>"
+        + "        </GlossEntry>"
+        + "      </GlossList>"
+        + "      <title>S</title>"
+        + "    </GlossDiv>"
+        + "    <title>example glossary</title>"
+        + "  </glossary>"
+        + "</root>", $.toXml((Map<String, Object>) $.fromJson(string)));
     }
 
     @Test
