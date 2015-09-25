@@ -1144,8 +1144,74 @@ public class $<T> extends com.github.underscore.$<T> {
         return builder.toString();
     }
 
+    public static class XmlStringBuilder {
+        private final StringBuilder builder;
+        private int ident;
+        private boolean newString;
+        private boolean newKey;
+        private boolean newLine;
+
+        public XmlStringBuilder() {
+            builder = new StringBuilder();
+        }
+
+        public XmlStringBuilder append(final char character) {
+            switch (character) {
+                case '[':
+                case '{':
+                    fillSpaces(newLine);
+                    ident += 2;
+                    break;
+                case ']':
+                case '}':
+                    ident -= 2;
+                    builder.append("\n");
+                    fillSpaces(true);
+                    break;
+                case '\"':
+                    newString = !newString;
+                    fillSpaces(newString && !newKey);
+                    break;
+                default:
+                    break;
+            }
+            builder.append(character);
+            if (character == ',' || character == '[' || character == '{') {
+                builder.append("\n");
+                newLine = true;
+            } else {
+                newLine = false;
+            }
+            if (character == ':') {
+                builder.append(' ');
+                newKey = true;
+            } else {
+                newKey = false;
+            }
+            return this;
+        }
+
+        public XmlStringBuilder append(final String string) {
+            fillSpaces(!newString && !newKey);
+            builder.append(string);
+            return this;
+        }
+
+        private void fillSpaces(final boolean condition) {
+            if (condition) {
+                for (int index = 0; index < ident; index += 1) {
+                    builder.append(' ');
+                }
+            }
+        }
+
+        public String toString() {
+            return builder.toString();
+        }
+    }
+
     public static class XmlArray {
-        public static void writeXml(Collection collection, StringBuilder builder) {
+        public static void writeXml(Collection collection, XmlStringBuilder builder) {
             if (collection == null) {
                 builder.append(NULL);
                 return;
@@ -1173,7 +1239,7 @@ public class $<T> extends com.github.underscore.$<T> {
             builder.append("</element>");
         }
 
-        public static void writeXml(byte[] array, StringBuilder builder) {
+        public static void writeXml(byte[] array, XmlStringBuilder builder) {
             if (array == null) {
                 builder.append(NULL);
             } else if (array.length == 0) {
@@ -1191,7 +1257,7 @@ public class $<T> extends com.github.underscore.$<T> {
             }
         }
 
-        public static void writeXml(short[] array, StringBuilder builder) {
+        public static void writeXml(short[] array, XmlStringBuilder builder) {
             if (array == null) {
                 builder.append(NULL);
             } else if (array.length == 0) {
@@ -1209,7 +1275,7 @@ public class $<T> extends com.github.underscore.$<T> {
             }
         }
 
-        public static void writeXml(int[] array, StringBuilder builder) {
+        public static void writeXml(int[] array, XmlStringBuilder builder) {
             if (array == null) {
                 builder.append(NULL);
             } else if (array.length == 0) {
@@ -1227,7 +1293,7 @@ public class $<T> extends com.github.underscore.$<T> {
             }
         }
 
-        public static void writeXml(long[] array, StringBuilder builder) {
+        public static void writeXml(long[] array, XmlStringBuilder builder) {
             if (array == null) {
                 builder.append(NULL);
             } else if (array.length == 0) {
@@ -1245,7 +1311,7 @@ public class $<T> extends com.github.underscore.$<T> {
             }
         }
 
-        public static void writeXml(float[] array, StringBuilder builder) {
+        public static void writeXml(float[] array, XmlStringBuilder builder) {
             if (array == null) {
                 builder.append(NULL);
             } else if (array.length == 0) {
@@ -1263,7 +1329,7 @@ public class $<T> extends com.github.underscore.$<T> {
             }
         }
 
-        public static void writeXml(double[] array, StringBuilder builder) {
+        public static void writeXml(double[] array, XmlStringBuilder builder) {
             if (array == null) {
                 builder.append(NULL);
             } else if (array.length == 0) {
@@ -1281,7 +1347,7 @@ public class $<T> extends com.github.underscore.$<T> {
             }
         }
 
-        public static void writeXml(boolean[] array, StringBuilder builder) {
+        public static void writeXml(boolean[] array, XmlStringBuilder builder) {
             if (array == null) {
                 builder.append(NULL);
             } else if (array.length == 0) {
@@ -1299,7 +1365,7 @@ public class $<T> extends com.github.underscore.$<T> {
             }
         }
 
-        public static void writeXml(char[] array, StringBuilder builder) {
+        public static void writeXml(char[] array, XmlStringBuilder builder) {
             if (array == null) {
                 builder.append(NULL);
             } else if (array.length == 0) {
@@ -1317,7 +1383,7 @@ public class $<T> extends com.github.underscore.$<T> {
             }
         }
 
-        public static void writeXml(Object[] array, StringBuilder builder) {
+        public static void writeXml(Object[] array, XmlStringBuilder builder) {
             if (array == null) {
                 builder.append(NULL);
             } else if (array.length == 0) {
@@ -1337,7 +1403,7 @@ public class $<T> extends com.github.underscore.$<T> {
     }
 
     public static class XmlObject {
-        public static void writeXml(Map map, StringBuilder builder) {
+        public static void writeXml(Map map, XmlStringBuilder builder) {
             if (map == null) {
                 builder.append(NULL);
                 return;
@@ -1365,7 +1431,7 @@ public class $<T> extends com.github.underscore.$<T> {
     }
 
     public static class XmlValue {
-        public static void writeXml(Object value, StringBuilder builder) {
+        public static void writeXml(Object value, XmlStringBuilder builder) {
             if (value == null) {
                 builder.append(NULL);
             } else if (value instanceof String) {
@@ -1471,7 +1537,7 @@ public class $<T> extends com.github.underscore.$<T> {
     }
 
     public static String toXml(Map map) {
-        final StringBuilder builder = new StringBuilder();
+        final XmlStringBuilder builder = new XmlStringBuilder();
 
         XmlObject.writeXml(map, builder);
         return builder.toString();
