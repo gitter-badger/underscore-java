@@ -1152,7 +1152,8 @@ public class $<T> extends com.github.underscore.$<T> {
         private boolean newLine;
 
         public XmlStringBuilder() {
-            builder = new StringBuilder();
+            builder = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root>\n");
+            ident = 2;
         }
 
         public XmlStringBuilder append(final char character) {
@@ -1192,7 +1193,12 @@ public class $<T> extends com.github.underscore.$<T> {
         }
 
         public XmlStringBuilder append(final String string) {
-            fillSpaces(!newString && !newKey);
+            builder.append(string);
+            return this;
+        }
+
+        public XmlStringBuilder appendFillSpaces(final String string) {
+            fillSpaces(true);
             builder.append(string);
             return this;
         }
@@ -1206,7 +1212,7 @@ public class $<T> extends com.github.underscore.$<T> {
         }
 
         public String toString() {
-            return builder.toString();
+            return builder.toString() + "\n</root>";
         }
     }
 
@@ -1217,26 +1223,19 @@ public class $<T> extends com.github.underscore.$<T> {
                 return;
             }
 
-            boolean first = true;
             Iterator iter = collection.iterator();
 
-            builder.append("<element>");
             while (iter.hasNext()) {
-                if (first) {
-                    first = false;
-                } else {
-                    builder.append(',');
-                }
-
                 Object value = iter.next();
                 if (value == null) {
                     builder.append(NULL);
                     continue;
                 }
 
+                builder.appendFillSpaces("<element>");
                 XmlValue.writeXml(value, builder);
+                builder.append("</element>");
             }
-            builder.append("</element>");
         }
 
         public static void writeXml(byte[] array, XmlStringBuilder builder) {
@@ -1412,21 +1411,17 @@ public class $<T> extends com.github.underscore.$<T> {
             boolean first = true;
             Iterator iter = map.entrySet().iterator();
 
-            builder.append('{');
             while (iter.hasNext()) {
                 if (first) {
                     first = false;
                 } else {
-                    builder.append(',');
+                    builder.append("\n");
                 }
                 Map.Entry entry = (Map.Entry) iter.next();
-                builder.append('\"');
-                builder.append(escape(String.valueOf(entry.getKey())));
-                builder.append('\"');
-                builder.append(':');
+                builder.appendFillSpaces("<").append(escape(String.valueOf(entry.getKey()))).append(">");
                 XmlValue.writeXml(entry.getValue(), builder);
+                builder.append("</").append(escape(String.valueOf(entry.getKey()))).append(">");
             }
-            builder.append('}');
         }
     }
 
@@ -1435,9 +1430,7 @@ public class $<T> extends com.github.underscore.$<T> {
             if (value == null) {
                 builder.append(NULL);
             } else if (value instanceof String) {
-                builder.append('\"');
                 builder.append(escape((String) value));
-                builder.append('\"');
             } else if (value instanceof Double) {
                 if (((Double) value).isInfinite() || ((Double) value).isNaN()) {
                     builder.append(NULL);
@@ -1455,9 +1448,13 @@ public class $<T> extends com.github.underscore.$<T> {
             } else if (value instanceof Boolean) {
                 builder.append(value.toString());
             } else if (value instanceof Map) {
+                builder.append("\n");
                 XmlObject.writeXml((Map) value, builder);
+                builder.append("\n").appendFillSpaces("");
             } else if (value instanceof Collection) {
+                builder.append("\n");
                 XmlArray.writeXml((Collection) value, builder);
+                builder.append("\n").appendFillSpaces("");
             } else if (value instanceof byte[]) {
                 XmlArray.writeXml((byte[]) value, builder);
             } else if (value instanceof short[]) {
